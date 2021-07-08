@@ -123,7 +123,7 @@
         <!-- 待上传网站表格 -->
         <el-table id="out-table2" :data="resultData2" border style="width: 100%">
           <el-table-column type="index" width="50"> </el-table-column>
-          <el-table-column label="格式" prop="file.name" >
+          <el-table-column label="上站格式（导出即可）" prop="file.name" >
             <template slot-scope="scope">
               <a>{{ scope.row.name}}</a>
             </template>
