@@ -1,0 +1,10 @@
+{
+    "apps": [
+        {
+            "name": "koa-api-nodeJs",
+            "script": "./app.js",
+            "log_date_format": "YYYY-MM-DD HH:mm:ss",
+            "watch": true
+        }
+    ]
+}

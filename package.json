@@ -1,0 +1,39 @@
+{
+  "name": "rest_node_api",
+  "version": "1.0.0",
+  "description": "kwTop",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app",
+    "pm2": "pm2 start pm2.json"
+  },
+  "keywords": [
+    "node",
+    "koa"
+  ],
+  "author": "king@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "compressing": "^1.5.1",
+    "dayjs": "^1.10.6",
+    "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
+    "koa-json-error": "^3.1.2",
+    "koa-parameter": "^3.0.1",
+    "koa-router": "^10.0.0",
+    "koa-static": "^5.0.0",
+    "node-ssh": "^11.1.1",
+    "puppeteer": "^10.1.0",
+    "puppeteer-cluster": "^0.22.0",
+    "replace-in-file": "^6.2.0",
+    "request": "^2.88.2",
+    "shelljs": "^0.8.4",
+    "website-scraper": "^4.2.3",
+    "website-scraper-puppeteer": "^0.1.5"
+  },
+  "devDependencies": {
+    "chalk": "^3.0.0",
+    "inquirer": "^7.0.4"
+  }
+}

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>抓取百度前5页</title>
+    <link rel="stylesheet" href="./static/main.css" />
+    <link rel="stylesheet" href="./static/css/element.css" />
+
+    <script src="./static/js/xlsx.full.min.js"></script>
+    <script src="./static/js/FileSaver.js"></script>
+    <script src="./static/js/vue.js"></script>
+    <script src="./static/js/element.js"></script>
+    <script src="./static/js/axios.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="header">
+        <h4>抓取百度前5页</h4>
+      </div>
+      <el-card class="card">
+        <el-form
+          class="search-form"
+          :inline="true"
+          label-position="left"
+          ref="searchForm"
+          :model="searchForm"
+          :rules="rules"
+        >
+          <el-form-item prop="kws">
+            <el-input
+              v-model="searchForm.kws"
+              :autosize="{ minRows: 2, maxRows: 5 }"
+              type="textarea"
+              placeholder="请输入查询网址,多网址换行，一行一个"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="submit" type="primary" :loading="loading"
+              >{{ loading ? '查询中' : '查询' }}</el-button
+            >
+          </el-form-item>
+        </el-form>
+
+        <el-alert class="log" :title="log" type="warning" :closable="false">
+        </el-alert>
+        <br />
+        <el-button
+          class="exportExcel"
+          @click="exportExcel('out-table','全部数据')"
+          :disabled="loading"
+          v-if="!loading"
+          size="mini"
+          type="warning"
+          >导出全部</el-button
+        >
+
+        <!-- 全部数组的表格 -->
+        <el-table id="out-table" :data="resultData" border style="width: 100%">
+          <el-table-column label="关键字" prop="kw"> </el-table-column>
+          <el-table-column label="所在页码" prop="page" width="80">
+          </el-table-column>
+          <el-table-column label="标题" prop="title"> </el-table-column>
+          <el-table-column prop="link" label="底部链接" width="180">
+            <template slot-scope="scope">
+              <a target="_blank" :href="formatUrl(scope.row.link)"
+                >{{ formatUrl(scope.row.link) }}</a
+              >
+            </template>
+          </el-table-column>
+          <el-table-column prop="titleLink" label="标题链接" width="180">
+            <template slot-scope="scope">
+              <a target="_blank" :href="scope.row.titleLink"
+                >{{ scope.row.titleLink }}</a
+              >
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" label="收录标题"> </el-table-column>
+          <el-table-column prop="title" label="操作">
+            <template slot-scope="scope">
+              <el-button @click="addResData(scope.row)" type="primary"
+                >加入待下载</el-button
+              >
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <!-- 需要下载的域名 -->
+        <div id="fixed-table">
+          <el-button
+            class="exportExcel"
+            @click="exportExcel('result-table','选好的域名')"
+            :disabled="loading"
+            v-if="!loading"
+            size="mini"
+            type="warning"
+            >导出</el-button
+          >
+          <el-table
+            id="result-table"
+            :data="resData"
+            border
+            style="width: 100%"
+          >
+            <el-table-column label="挑选好的网站" prop="link">
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-card>
+    </div>
+  </body>
+  <script>
+    var app = new Vue({
+      el: "#app",
+      data() {
+        return {
+          msg: "value",
+          resultData: [],
+          resData: [],
+          loading: false,
+          searchForm: {
+            kws: "",
+          },
+          rules: {
+            kws: [{ required: true, message: "请输入内容", trigger: "blur" }],
+          },
+          log: "",
+        };
+      },
+      methods: {
+        formatUrl(link){
+          return `http://${link}`
+        },
+        addResData(row) {
+          this.resData.push({ link: this.formatUrl(row.link) });
+        },
+        submit() {
+          this.$refs.searchForm.validate(async (valid) => {
+            if (valid) {
+              this.resultData = [];
+              this.resData = [];
+              this.loading = true;
+
+              var oparray = [];
+              var res = this.searchForm.kws;
+              res = res.replace(/^\n*/, "");
+              res = res.replace(/\n{2,}/g, "\n");
+              res = res.replace(/\n*$/, "");
+              oparray = res.split("\n");
+
+              const kws = oparray;
+              this.urlCount = kws.length;
+              console.log("kws", kws);
+
+              let result = await axios({
+                method: "post",
+                url: "http://localhost:3000/bd/",
+                data: { kws },
+              });
+              console.log(result);
+              let data = result.data.data;
+              console.log("data: ", data);
+              let list = [];
+              data.map((item) => {
+                list.push(...item);
+              });
+              console.log(list);
+              this.resultData = list;
+              this.loading = false;
+              return true;
+            }
+            console.log("error submit!!");
+            return false;
+          });
+        },
+        // 导出表格
+        exportExcel(id,name) {
+          // if (!this.searchUrlData.length) return
+          // 定义导出Excel表格事件
+          /* 从表生成工作簿对象 */
+          var wb = XLSX.utils.table_to_book(document.getElementById(id));
+          /* 获取二进制字符串作为输出 */
+          var wbout = XLSX.write(wb, {
+            bookType: "xlsx",
+            bookSST: true,
+            type: "array",
+          });
+          try {
+            saveAs(
+              // Blob 对象表示一个不可变、原始数据的类文件对象。
+              // Blob 表示的不一定是JavaScript原生格式的数据。
+              // File 接口基于Blob，继承了 blob 的功能并将其扩展使其支持用户系统上的文件。
+              // 返回一个新创建的 Blob 对象，其内容由参数中给定的数组串联组成。
+              new Blob([wbout], { type: "application/octet-stream" }),
+              // 设置导出文件名称
+              `${name}.xlsx`
+            );
+          } catch (e) {
+            if (typeof console !== "undefined") console.log(e, wbout);
+          }
+          return wbout;
+        },
+      },
+    });
+  </script>
+</html>

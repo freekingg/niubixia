@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>网站TDK修改</title></title></title>
+    <link rel="stylesheet" href="./static/main.css" />
+    <link rel="stylesheet" href="./static/css/element.css" />
+
+    <script src="./static/js/xlsx.full.min.js"></script>
+    <script src="./static/js/FileSaver.js"></script>
+    <script src="./static/js/vue.js"></script>
+    <script src="./static/js/element.js"></script>
+    <script src="./static/js/axios.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="header">
+        <h4>网站TDK修改</h4>
+      </div>
+
+     
+      <el-card class="card">
+        <el-form
+          class="search-form"
+          label-position="left"
+          ref="websiteForm"
+          :model="websiteForm"
+          :rules="websiteRules"
+          :inline="true"
+        >
+        <el-form-item prop="path">
+          <el-input
+            v-model="websiteForm.path"
+            placeholder="请输入网站根目录：/www/"
+            clearable
+          ></el-input>
+        </el-form-item>
+          <el-form-item>
+            <el-button @click="websiteSubmit" type="primary" :loading="loading"
+              >{{ loading ? '检测中' : '检测' }}</el-button
+            >
+          </el-form-item>
+        </el-form>
+        <el-form
+          class="search-form"
+          label-position="left"
+          ref="searchForm"
+          :model="searchForm"
+          :rules="rules"
+          :inline="true"
+        >
+          <el-form-item prop="titles">
+            <el-input
+              v-model="searchForm.titles"
+              :autosize="{ minRows: 10, maxRows: 14 }"
+              type="textarea"
+              placeholder="请输入标题,一行一个"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="kws">
+            <el-input
+              v-model="searchForm.kws"
+              :autosize="{ minRows: 10, maxRows: 14 }"
+              type="textarea"
+              placeholder="请输入关键词,一行一个"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="domains">
+            <el-input
+              v-model="searchForm.domains"
+              :autosize="{ minRows: 10, maxRows: 14 }"
+              type="textarea"
+              placeholder="请输入需要绑定的域名,一行一个,不需要加协议"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="submit" type="primary" :loading="loading"
+              >{{ loading ? '执行中' : '执行' }}</el-button
+            >
+          </el-form-item>
+        </el-form>
+
+        <el-alert class="log" :title="log" type="warning" :closable="false">
+        </el-alert>
+        <br />
+        <el-button
+          class="exportExcel"
+          @click="exportExcel('out-table','全部数据')"
+          :disabled="loading"
+          v-if="!loading"
+          size="mini"
+          type="warning"
+          >导出全部</el-button
+        >
+        <el-button
+          class="exportExcel"
+          @click="exportExcel('out-table2','上站数据')"
+          :disabled="loading"
+          v-if="!loading"
+          size="mini"
+          type="warning"
+          >导出网站格式</el-button
+        >
+
+        <!-- 全部数组的表格 -->
+        <el-table id="out-table" :data="resultData" border style="width: 100%">
+          <el-table-column type="index" width="50"> </el-table-column>
+          <el-table-column label="名称" prop="file.name" width="200"> </el-table-column>
+          <el-table-column label="路径" prop="path"> </el-table-column>
+          <el-table-column prop="status" label="状态" width="180">
+            <template slot-scope="scope">
+              <a>{{ scope.row.status ? '成功' : scope.row.msg ? scope.row.msg : '-' }}</a>
+            </template>
+          </el-table-column>
+        </el-table>
+
+
+        <!-- 待上传网站表格 -->
+        <el-table id="out-table2" :data="resultData2" border style="width: 100%">
+          <el-table-column type="index" width="50"> </el-table-column>
+          <el-table-column label="格式" prop="file.name" >
+            <template slot-scope="scope">
+              <a>{{ scope.row.name}}</a>
+            </template>
+          </el-table-column>
+        </el-table>
+
+
+      </el-card>
+    </div>
+  </body>
+  <script>
+    let timer = null
+    let app = new Vue({
+      el: "#app",
+      data() {
+        return {
+          msg: "value",
+          resultData: [],
+          resultData2:[],
+          loading: false,
+          websiteLoading:false,
+          searchForm: {
+            kws: "",
+            titles:"",
+            domains:""
+          },
+          websiteForm:{
+            path:''
+          },
+          rules: {
+            titles: [{ required: true, message: "请输入内容", trigger: "blur" }],
+            kws: [{ required: true, message: "请输入内容", trigger: "blur" }],
+            domains: [{ required: true, message: "请输入内容", trigger: "blur" }],
+          },
+          websiteRules: {
+            path: [{ required: true, message: "请输入内容", trigger: "blur" }],
+          },
+          log: "...",
+        };
+      },
+      methods: {
+        addResData(row) {
+          this.resData.push({ link: row.link });
+        },
+        websiteSubmit() {
+          this.$refs.websiteForm.validate(async (valid) => {
+            if (valid) {
+              this.websiteLoading = true;
+
+              var oparray = [];
+              var path = this.websiteForm.path;
+             axios({
+                method: "get",
+                url: "http://localhost:3000/replace/getWebsite",
+                params: { path },
+              }).then((result) => {
+                console.log(result);
+                if(result.data.code === 0){
+                    
+                  this.resultData = result.data.data
+                  if(!this.resultData.length){
+                    this.$message({
+                        message: '当前目录下没有文件，请检查 后重试',
+                        type: 'error'
+                      });
+                      return
+                    }
+
+                    this.$message({
+                      message: '获取成功',
+                      type: 'success'
+                    });
+
+
+                }else{
+                  this.$message({
+                  message: '获取失败，请检查路径',
+                  type: 'error'
+                });
+                }
+                
+                this.websiteLoading = false;
+              }).catch((err) => {
+                this.websiteLoading = false;
+                this.$message({
+                  message: '获取失败，请刷新重试',
+                  type: 'error'
+                });
+              });
+
+            }
+            console.log("error submit!!");
+            return false;
+          });
+        },
+        submit() {
+          this.$refs.searchForm.validate(async (valid) => {
+            if (valid) {
+
+              if(!this.resultData.length){
+                this.$message({
+                  message: '当前目录下没有文件，请检查 后重试',
+                  type: 'error'
+                });
+                return
+              }
+
+              this.loading = true;
+              let titles = this.parseLine(this.searchForm.titles)
+              let keywords = this.parseLine(this.searchForm.kws)
+              let domains = this.parseLine(this.searchForm.domains)
+
+              let contents = this.resultData.map((item,index)=>{
+                return {
+                  title:titles[index],
+                  keywords:keywords[index],
+                }
+              })
+
+              if(this.resultData.length > titles.length || this.resultData.length > keywords.length || this.resultData.length > domains.length){
+                this.$message({
+                  message: '内容、关键词、域名条数不能小于网站数量',
+                  type: 'error'
+                });
+                this.loading = false;
+                return
+              }
+
+              const path = this.websiteForm.path;
+
+             axios({
+                method: "post",
+                url: "http://localhost:3000/replace/",
+                data: { path , contents },
+              }).then((result) => {
+                console.log(result);
+                this.$message({
+                  message: '全部完成',
+                  type: 'success'
+                });
+                this.loading = false;
+
+               
+                let domains = this.parseLine(this.searchForm.domains)
+
+                let resultData = this.resultData.map((item,index)=>{
+                  return {
+                    name : `${domains[index]}|${item.name}|1|0|0|0`
+                  }
+                })
+                this.resultData2 = resultData
+
+              }).catch((err) => {
+                console.log(object)
+                this.loading = false;
+                this.$message({
+                  message: '替换出错，请刷新重试',
+                  type: 'error'
+                });
+              });
+              
+              timer = setInterval(()=>{
+                this.getProgress().then((result) => {
+                  console.log(result)
+                  this.resultData = result.data.data
+                  if(!this.loading){
+                    clearInterval(timer)
+                  }
+                })
+              },2000)
+
+            }
+            console.log("error submit!!");
+            return false;
+          });
+        },
+        getProgress(){
+          return axios({
+                method: "get",
+                url: "http://localhost:3000/replace/progress/",
+              })
+        },
+        parseLine(data){
+          var oparray = [];
+          var kws = data
+          kws = kws.replace(/^\n*/, "");
+          kws = kws.replace(/\n{2,}/g, "\n");
+          kws = kws.replace(/\n*$/, "");
+          oparray = kws.split("\n");
+          return oparray
+        },
+        // 导出表格
+        exportExcel(id,name) {
+          // if (!this.searchUrlData.length) return
+          // 定义导出Excel表格事件
+          /* 从表生成工作簿对象 */
+          var wb = XLSX.utils.table_to_book(document.getElementById(id));
+          /* 获取二进制字符串作为输出 */
+          var wbout = XLSX.write(wb, {
+            bookType: "xlsx",
+            bookSST: true,
+            type: "array",
+          });
+          try {
+            saveAs(
+              // Blob 对象表示一个不可变、原始数据的类文件对象。
+              // Blob 表示的不一定是JavaScript原生格式的数据。
+              // File 接口基于Blob，继承了 blob 的功能并将其扩展使其支持用户系统上的文件。
+              // 返回一个新创建的 Blob 对象，其内容由参数中给定的数组串联组成。
+              new Blob([wbout], { type: "application/octet-stream" }),
+              // 设置导出文件名称
+              `${name}.xlsx`
+            );
+          } catch (e) {
+            if (typeof console !== "undefined") console.log(e, wbout);
+          }
+          return wbout;
+        },
+      },
+    });
+  </script>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>网站克隆</title></title></title>
+    <link rel="stylesheet" href="./static/main.css" />
+    <link rel="stylesheet" href="./static/css/element.css" />
+
+    <script src="./static/js/xlsx.full.min.js"></script>
+    <script src="./static/js/FileSaver.js"></script>
+    <script src="./static/js/vue.js"></script>
+    <script src="./static/js/element.js"></script>
+    <script src="./static/js/axios.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="header">
+        <h4>网站批量克隆</h4>
+      </div>
+      <el-card class="card">
+        <el-form
+          class="search-form"
+          :inline="true"
+          label-position="left"
+          ref="searchForm"
+          :model="searchForm"
+          :rules="rules"
+        >
+          <el-form-item prop="kws">
+            <el-input
+              v-model="searchForm.kws"
+              :autosize="{ minRows: 4, maxRows: 7 }"
+              type="textarea"
+              placeholder="请输入网址,多网址换行，一行一个"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="submit" type="primary" :loading="loading"
+              >{{ loading ? '执行中' : '执行' }}</el-button
+            >
+          </el-form-item>
+        </el-form>
+
+        <el-alert class="log" :title="log" type="warning" :closable="false">
+        </el-alert>
+        <br />
+        <el-button
+          class="exportExcel"
+          @click="exportExcel('out-table','全部数据')"
+          :disabled="loading"
+          v-if="!loading"
+          size="mini"
+          type="warning"
+          >导出全部</el-button
+        >
+
+        <!-- 全部数组的表格 -->
+        <el-table id="out-table" :data="resultData" border style="width: 100%">
+          <el-table-column label="域名" prop="url"> </el-table-column>
+          <el-table-column prop="status" label="状态" width="180">
+            <template slot-scope="scope">
+              <a>{{ scope.row.status ? '成功' : '失败' }}</a>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+    </div>
+  </body>
+  <script>
+    let timer = null
+    let app = new Vue({
+      el: "#app",
+      data() {
+        return {
+          msg: "value",
+          resultData: [],
+          loading: false,
+          searchForm: {
+            kws: "",
+          },
+          rules: {
+            kws: [{ required: true, message: "请输入内容", trigger: "blur" }],
+          },
+          log: "克隆完成后，文件位与桌面 clone-site 文件夹",
+        };
+      },
+      methods: {
+        addResData(row) {
+          this.resData.push({ link: row.link });
+        },
+        submit() {
+          this.$refs.searchForm.validate(async (valid) => {
+            if (valid) {
+              this.resultData = [];
+              this.loading = true;
+
+              var oparray = [];
+              var res = this.searchForm.kws;
+              res = res.replace(/^\n*/, "");
+              res = res.replace(/\n{2,}/g, "\n");
+              res = res.replace(/\n*$/, "");
+              oparray = res.split("\n");
+
+              const urls = oparray;
+              this.urlCount = urls.length;
+              console.log("urls", urls);
+
+             axios({
+                method: "post",
+                url: "http://localhost:3000/clone/",
+                data: { urls },
+              }).then((result) => {
+                console.log(result);
+                this.$message({
+                  message: '全部完成',
+                  type: 'success'
+                });
+                this.loading = false;
+              }).catch((err) => {
+                this.loading = false;
+                this.$message({
+                  message: '克隆出错，请刷新重试',
+                  type: 'error'
+                });
+              });
+              
+              timer = setInterval(()=>{
+                this.getProgress().then((result) => {
+                  console.log(result)
+                  this.resultData = result.data.data
+                  if(!this.loading){
+                    clearInterval(timer)
+                  }
+                })
+              },2000)
+
+            }
+            console.log("error submit!!");
+            return false;
+          });
+        },
+        getProgress(){
+          return axios({
+                method: "get",
+                url: "http://localhost:3000/clone/progress/",
+              })
+        },
+        // 导出表格
+        exportExcel(id,name) {
+          // if (!this.searchUrlData.length) return
+          // 定义导出Excel表格事件
+          /* 从表生成工作簿对象 */
+          var wb = XLSX.utils.table_to_book(document.getElementById(id));
+          /* 获取二进制字符串作为输出 */
+          var wbout = XLSX.write(wb, {
+            bookType: "xlsx",
+            bookSST: true,
+            type: "array",
+          });
+          try {
+            saveAs(
+              // Blob 对象表示一个不可变、原始数据的类文件对象。
+              // Blob 表示的不一定是JavaScript原生格式的数据。
+              // File 接口基于Blob，继承了 blob 的功能并将其扩展使其支持用户系统上的文件。
+              // 返回一个新创建的 Blob 对象，其内容由参数中给定的数组串联组成。
+              new Blob([wbout], { type: "application/octet-stream" }),
+              // 设置导出文件名称
+              `${name}.xlsx`
+            );
+          } catch (e) {
+            if (typeof console !== "undefined") console.log(e, wbout);
+          }
+          return wbout;
+        },
+      },
+    });
+  </script>
+</html>

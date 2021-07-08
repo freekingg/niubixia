@@ -1,0 +1,29 @@
+#app{
+  width: 1000px;
+  margin: 0 auto;
+}
+html{
+  background: url('../static/2.jpg') no-repeat;
+}
+.header{
+  margin: 0 auto;
+  text-align: center;
+  font-size: 30px;
+}
+.exportExcel{
+  margin-bottom: 16px !important;
+}
+
+.el-table .cell{
+  word-break: normal !important;
+}
+
+#fixed-table{
+  width: 200px !important;
+  position: fixed;
+  left: 30px;
+  top: 100px;
+}
+.el-form-item__content{
+  width: 300px;
+}
