@@ -6,7 +6,11 @@ const replace = require("replace-in-file");
 
 const os = require("os");
 const homedir = os.homedir();
-const desktop = path.join(homedir, "Desktop");
+let desktop = path.join(homedir, "Desktop");
+
+if(os.platform === 'linux'){
+  desktop = path.join(homedir, "./");
+}
 const siteDir = path.join(desktop, `/clone-site`);
 
 const checkDir = fs.existsSync(siteDir);
@@ -22,8 +26,6 @@ class Down {
       // 取第一个域名为文件夹名字
       const { host } = new URL(url);
       const name = host;
-
-      // console.log(new URL(url));
 
       // 创建网站文件夹
       const webSiteDir = path.join(siteDir, name);
