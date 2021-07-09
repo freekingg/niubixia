@@ -24,6 +24,8 @@
     "koa-parameter": "^3.0.1",
     "koa-router": "^10.0.0",
     "koa-static": "^5.0.0",
+    "multiprocessing": "^1.2.0",
+    "node-multiprocess": "0.0.2",
     "node-ssh": "^11.1.1",
     "puppeteer": "^10.1.0",
     "puppeteer-cluster": "^0.22.0",

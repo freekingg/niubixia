@@ -1,6 +1,4 @@
 const Down = require('./down')
-const concurrentRun = require('./concurrentRun')
-
 
 let current = []
 
@@ -15,10 +13,6 @@ class Clone {
       current.push({url,status:result})
     }
 
-    // let requestFnList = urls.map(async url=> Down.create(url))
-
-    // const reply = await  concurrentRun(requestFnList,2,'开始下载')
-    console.log('reply',reply);
     console.log('全部完成了');
     ctx.body = {
       code: 0,

@@ -20,8 +20,8 @@ if (!checkDir) {
   });
 }
 
-class Down {
-  async create(url) {
+
+module.exports = async function create(url) {
     return new Promise((resolve, reject) => {
       // 取第一个域名为文件夹名字
       const { host } = new URL(url);
@@ -59,7 +59,7 @@ class Down {
         plugins: [
           new PuppeteerPlugin({
             launchOptions: {
-              headless: false,
+              headless: true,
               defaultViewport: {
                 width: 1920,
                 height: 1080,
@@ -153,7 +153,7 @@ class Down {
         });
     });
   }
-}
+
 
 /**
  *
@@ -191,4 +191,4 @@ function delFile(url) {
   }
 }
 
-module.exports = new Down();
+// module.exports = new Down();
