@@ -23,7 +23,7 @@ class Down {
       const { host } = new URL(url);
       const name = host;
 
-      console.log(new URL(url));
+      // console.log(new URL(url));
 
       // 创建网站文件夹
       const webSiteDir = path.join(siteDir, name);
@@ -64,7 +64,7 @@ class Down {
                 width: 1920,
                 height: 1080,
               },
-              timeout: 60000,
+              timeout: 40000,
             },
             scrollToBottom: { timeout: 10000, viewportN: 10 },
           }),
@@ -81,7 +81,9 @@ class Down {
             files: src,
             from: [
               /<a([\s]+|[\s]+[^<>]+[\s]+)href=(\"([^<>"\']*)\"|\'([^<>"\']*)\')[^<>]*>/gi,
+              /<form([\s]+|[\s]+[^<>]+[\s]+)action=(\"([^<>"\']*)\"|\'([^<>"\']*)\')[^<>]*>/gi,
               /<script([\s]+|[\s]+[^<>]+[\s]+)src=(\"([^<>"\']*)\"|\'([^<>"\']*)\')[^<>]*>/gi,
+              /location.href/gi,
               /hm.src/gi,
               /cnzz.com/gi,
               /window.open/gi,
@@ -95,6 +97,10 @@ class Down {
                 return str;
               }
 
+              if (m1.indexOf("location.href") !== -1) {
+                return `xxx`;
+              }
+
               if (m1.indexOf("src") !== -1) {
                 const ignoreJs = ["cnzz", "51.la", "baidu"];
 
@@ -104,6 +110,10 @@ class Down {
                   const str = m1.replace(reg, 'src="#"');
                   return str;
                 }
+              }
+
+              if (m1.indexOf("action=") !== -1) {
+                return `<form method="get" action=".">`;
               }
 
               if (m1.indexOf("hm.src") !== -1) {
