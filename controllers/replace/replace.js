@@ -1,7 +1,7 @@
 const Replace = require("./replaceFile");
 const fs = require("fs");
 const paths = require("path");
-const { getDir } = require("../common/utils");
+const { getDir } = require("../../common/utils");
 
 let current = [];
 

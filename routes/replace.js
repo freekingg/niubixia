@@ -2,7 +2,7 @@ const Router = require("koa-router");
 const router = new Router({
   prefix: "/replace",
 });
-const { create ,getWebsite,progress} = require("../controllers/replace");
+const { create ,getWebsite,progress} = require("../controllers/replace/replace");
 
 router.get("/getWebsite", getWebsite);
 

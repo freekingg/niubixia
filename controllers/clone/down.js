@@ -36,8 +36,6 @@ class Down {
         console.log("存在目标文件夹，先删除");
       }
 
-      // win.webContents.send('clone-log', `【${host}】开始下载...`)
-
       const options = {
         urls: url,
         directory: webSiteDir,

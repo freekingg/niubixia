@@ -1,4 +1,4 @@
-const { Invalid, Paging, checkProxy } = require("../common/utils");
+const { Invalid, Paging, checkProxy } = require("../../common/utils");
 const { Cluster } = require("puppeteer-cluster");
 
 const launchOptions = {

@@ -7,7 +7,7 @@ const homedir = os.homedir();
 const desktop = path.join(homedir, "Desktop");
 const siteDir = path.join(desktop, `/clone-site`);
 
-const { existsFile, ascii } = require("../common/utils");
+const { existsFile, ascii } = require("../../common/utils");
 
 const checkDir = fs.existsSync(siteDir);
 if (!checkDir) {
