@@ -27,6 +27,7 @@
     "multiprocessing": "^1.2.0",
     "node-multiprocess": "0.0.2",
     "node-ssh": "^11.1.1",
+    "pm2": "^5.1.0",
     "puppeteer": "^10.1.0",
     "puppeteer-cluster": "^0.22.0",
     "replace-in-file": "^6.2.0",

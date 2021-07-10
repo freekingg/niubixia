@@ -8,10 +8,13 @@ const os = require("os");
 const homedir = os.homedir();
 let desktop = path.join(homedir, "Desktop");
 
-if(os.platform === 'linux'){
+if(os.platform() === 'linux'){
   desktop = path.join(homedir, "./");
 }
 const siteDir = path.join(desktop, `/clone-site`);
+
+console.log('当前系统',os.platform());
+console.log('克隆的目录',siteDir);
 
 const checkDir = fs.existsSync(siteDir);
 if (!checkDir) {
@@ -59,12 +62,12 @@ class Down {
         plugins: [
           new PuppeteerPlugin({
             launchOptions: {
-              headless: false,
               defaultViewport: {
                 width: 1920,
                 height: 1080,
               },
               timeout: 40000,
+              args: ['--no-sandbox', '--disable-setuid-sandbox'],
             },
             scrollToBottom: { timeout: 10000, viewportN: 10 },
           }),
