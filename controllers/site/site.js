@@ -45,7 +45,7 @@ const getIp = async (ips) => {
     const randomNo = Math.floor(Math.random() * ips.length)
     const current = ips[randomNo]
 
-    const enabled = await checkIp(current)
+    const enabled = await checkProxy(current)
     if (!enabled) {
       ips.splice(randomNo, 1)
       if (!ips.length || status) {
@@ -53,7 +53,7 @@ const getIp = async (ips) => {
         resolve('noProxy')
         return
       }
-      getIp(ips, win)
+      getIp(ips)
       // win.webContents.send('site-log', `代理ip: ${current.ip} 不可用 - 继续检测其它代理ip`)
     } else {
       console.log('检测到当前可用ip', current)
