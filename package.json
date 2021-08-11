@@ -30,6 +30,7 @@
     "pm2": "^5.1.0",
     "puppeteer": "^10.1.0",
     "puppeteer-cluster": "^0.22.0",
+    "puppeteer-page-proxy": "^1.2.8",
     "replace-in-file": "^6.2.0",
     "request": "^2.88.2",
     "shelljs": "^0.8.4",

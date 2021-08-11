@@ -13,6 +13,7 @@ router.get("/", ctx => {
     Niu Bi <br/><span style="font-size:30px">心上无垢，林间有风。</span></p>
     
     <ul>
+     <li><a target="_blank" href="./site/">批量site</a></li>
      <li><a target="_blank" href="./baidutop/">top50网站查询</a></li>
      <li><a target="_blank" href="./kelong/">网站克隆</a></li>
      <li><a target="_blank" href="./tihuan/">tdk替换</a></li>
