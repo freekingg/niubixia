@@ -5,8 +5,8 @@ const {checkProxy} = require('./checkIp')
 
 const launchOptions = {
   headless: true,
-  // executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-  executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  // executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   ignoreHTTPSErrors: true, // 忽略证书错误
   args: [
     '--disable-gpu',
@@ -28,7 +28,7 @@ const launchOptions = {
 const clusterLanuchOptions = {
   concurrency: Cluster.CONCURRENCY_CONTEXT,
   maxConcurrency: 1, // 并发的workers数
-  retryLimit: 1, // 重试次数
+  retryLimit: 0, // 重试次数
   skipDuplicateUrls: true, // 不爬重复的url
   monitor: false, // 显示性能消耗
   puppeteerOptions: launchOptions,
@@ -48,7 +48,7 @@ const getIp = async (ips) => {
     const enabled = await checkProxy(current)
     if (!enabled) {
       ips.splice(randomNo, 1)
-      if (!ips.length || status) {
+      if (!ips.length) {
         // win.webContents.send('site-log', `没有任何可以使用的代理ip`)
         resolve('noProxy')
         return
@@ -74,22 +74,26 @@ class Clone {
 
     await cluster.task(async ({ page, data: url }) => {
       const proxy = await getIp(ips)
+      console.log('proxy',proxy);
       if (proxy !== 'noProxy') {
         await useProxy(page, `http://${proxy.ip}:${proxy.port}`)
         useProxy.lookup(page).then(data => {
           console.log('当前使用ip', data)
-          win.webContents.send('site-log', `当前使用ip-${data.ip}`)
+          // win.webContents.send('site-log', `当前使用ip-${data.ip}`)
         })
       }
   
       // 随机数下标
-      const times = [1000, 2000, 3000, 4000]
+      const times = [1000, 2000, 3000, 4000,10000,15000,8000,6000,7000,8000]
       const randomNo = Math.floor(Math.random() * times.length)
       const currentTime = times[randomNo]
       await page.waitForTimeout(currentTime)
+
+      page.on('console', msg => console.log('PAGE LOG:', msg.text()));
   
+      console.log('baidu-begin');
       try {
-        await page.goto('https://baidu.com', { timeout: 15000 })
+        await page.goto('https://baidu.com', { timeout: 40000 })
       } catch (error) {
         console.log('打开网页出错', url, error)
       }
@@ -98,21 +102,26 @@ class Clone {
       await page.click('#su')
   
       let body = {}
+      await page.waitForTimeout(3000)
       try {
-        await page.waitForSelector('#container', { timeout: 10000 })
+        await page.waitForSelector('#container', { timeout: 60000 })
         // content_none 判断是否有结果
         const contentNone = await page.$('.content_none')
-  
+        await page.waitForTimeout(1000)
         if (!contentNone) {
           body.titles = await page.evaluate(() => {
-            const titles = [...document.querySelectorAll('.new-pmd .t a')]
-            let title = titles.map(a => (a.innerText))
-            return title
+            const titles = [...document.querySelectorAll('.result')]
+            let h3s = titles.map(el => {
+              let h3 = el.querySelector('h3')
+              return h3 ? h3.innerText : ''
+            })
+            return h3s
           })
-          // 有收录结果
+          console.log('// 有收录结果');
         } else {
           body.titles = []
           // 没有收录结果
+          console.log('// 没有收录结果');
         }
         body.url = url
         body.error = false
@@ -123,6 +132,7 @@ class Clone {
         body.url = url
         body.error = true
       }
+      console.log('body',body);
       current.push(body)
     })
   
