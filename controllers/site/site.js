@@ -106,11 +106,11 @@ class Clone {
       time++;
       let body = {};
       try {
-        if (time % 3 == 0) {
+        if (time % 5 == 0) {
           await changeIp(pppoe);
         }
 
-        console.log("baidu-begin01");
+        console.log("开始查询",url);
 
         // 随机数下标
         const times = [1000, 2000, 3000, 4000, 10000];
