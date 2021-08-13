@@ -36,7 +36,7 @@ const launchOptions = {
 const clusterLanuchOptions = {
   concurrency: Cluster.CONCURRENCY_CONTEXT,
   maxConcurrency: 1, // 并发的workers数
-  retryLimit: 1, // 重试次数
+  retryLimit: 0, // 重试次数
   skipDuplicateUrls: true, // 不爬重复的url
   monitor: false, // 显示性能消耗
   puppeteerOptions: launchOptions,
@@ -113,7 +113,7 @@ class Clone {
         console.log("开始查询",url);
 
         // 随机数下标
-        const times = [1000, 2000, 3000, 4000, 10000];
+        const times = [1000, 2000, 3000, 4000];
         const randomNo = Math.floor(Math.random() * times.length);
         const currentTime = times[randomNo];
         await page.waitForTimeout(currentTime);
@@ -162,7 +162,7 @@ class Clone {
         // console.log("body", body);
         // console.log("body", current);
         current.push(body);
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(1000);
       } catch (error) {
         console.log("error", error);
       }
